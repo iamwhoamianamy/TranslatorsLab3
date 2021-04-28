@@ -139,7 +139,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="TranslatorsLab3.cpp" />
+    <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ConstTable.h" />
+    <ClInclude Include="ConstTableRow.h" />
+    <ClInclude Include="VarTable.h" />
+    <ClInclude Include="VarTableRow.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="tokens.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
