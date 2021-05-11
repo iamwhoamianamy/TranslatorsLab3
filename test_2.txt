@@ -1,0 +1,8 @@
+int main()
+{
+   int a = 90;
+   /* int asd */
+   int b = 1;
+   // int asd
+   return 0;
+}
