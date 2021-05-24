@@ -7,6 +7,7 @@ class SyntaxlAnalyzer
 public:
 	SyntaxlAnalyzer()
 	{
+
 	};
 
 	struct parsingTableRow
@@ -31,9 +32,9 @@ public:
 
 	vector<parsingTableRow> parsingTable;
 
-	void readParseTable() 
+	void readParseTable(const string& ParseTableFile)
 	{
-		ifstream fin("parsingTable.txt");
+		ifstream fin(ParseTableFile);
 		string line, temp;
 
 		while (getline(fin, line))
@@ -55,5 +56,46 @@ public:
 		fin.close();
 	}
 
+	string readToken(int& tableNum, int& index, LexicalAnalyzer la)
+	{
+	
+		switch (tableNum)
+		{
+		case 10:
+			return la.key_words.GetRow(index);
+		case 20:
+			return la.operators.GetRow(index);
+		case 30:
+			return "var";
+		case 40:
+			return "int";
+		default:
+			break;
+		}
+	}
 
+	bool LL1(const string& tokenFile, LexicalAnalyzer& la)
+	{
+		ifstream ftoken(tokenFile);
+
+		int tableNum, index;
+		char buf;
+		string s;
+		bool error = false;
+
+		if (ftoken.peek() == EOF) { return true; }
+
+		ftoken >> buf >> tableNum;
+		ftoken >> buf >> index >> buf;
+
+		s = readToken(tableNum, index, la);
+
+		do
+		{
+
+		} while (ftoken.peek() != EOF && !error);
+
+		
+
+	}
 };

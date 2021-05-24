@@ -87,9 +87,10 @@ public:
       for(size_t i = 0; i < table.size(); i++)
          if(table[i] == t_row)
             return i;
-
       return -1;
    }
+
+   string GetRow(const int& index) { return table[index].name; }
 
    void Output(const string& OUT_FILE)
    {

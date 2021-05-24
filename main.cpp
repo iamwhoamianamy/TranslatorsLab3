@@ -7,10 +7,19 @@ int main()
 {
    LexicalAnalyzer la = LexicalAnalyzer();
 
-   la.MakeTokens("test_1.txt", "tokens.txt");
-   //la.PrintAllTables("tables");
+   la.MakeTokens("prog.txt", "tokens.txt");
+   la.PrintAllTables("tables");
 
    SyntaxlAnalyzer sa = SyntaxlAnalyzer();
-   sa.readParseTable();
+   sa.readParseTable("parsingTable.txt");
+   sa.LL1("tokens.txt", la);
    
+  /* LLParse(tokenFile);
+
+   ofstream postfix;
+   postfix.open("postfix.txt");
+   for (int i = 0; i < toPostfixFile.size(); i++)
+      postfix << toPostfixFile[i] << " ";
+   postfix.close();*/
+
 }
