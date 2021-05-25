@@ -1,8 +1,8 @@
 int main()
 {
-   int a = 90;
-   /*int 1 a + = 10;*/
-   int b = 1;
-   //vghjhjjk
+   int a;
+   int b = 2;
+   int c = b + 5;
+   a = 2 * (b + c);
    return 0;
 }

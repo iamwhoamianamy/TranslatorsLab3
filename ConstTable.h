@@ -84,7 +84,7 @@ public:
    // возращает -1 в случае отсутствия строки с таким идентификатором в таблице
    int GetRowIndex(const ConstTableRow& t_row)
    {
-      for(size_t i = 0; i < table.size(); i++)
+      for(int i = 0; i < table.size(); i++)
          if(table[i] == t_row)
             return i;
       return -1;

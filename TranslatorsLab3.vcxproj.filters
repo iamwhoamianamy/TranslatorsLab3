@@ -43,5 +43,8 @@
     <Text Include="tokens.txt">
       <Filter>Файлы ресурсов</Filter>
     </Text>
+    <Text Include="prog.txt">
+      <Filter>Файлы ресурсов</Filter>
+    </Text>
   </ItemGroup>
 </Project>

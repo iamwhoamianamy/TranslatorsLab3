@@ -66,12 +66,12 @@ public:
    }
 
    // Получение значений атрибутов
-   int    GetValue(const int& t_index) { return table[t_index].value; }
+   bool   GetValue(const int& t_index) { return table[t_index].value; }
    string GetName(const int& t_index)  { return table[t_index].name; }
    bool   GetIsSet(const int& t_index) { return table[t_index].is_set; }
 
    // Установление значений атрибутов
-   void SetValue(const int& t_index, const int& t_value)   { table[t_index].value = t_value; }
+   void SetValue(const int& t_index, const bool& t_value)   { table[t_index].value = t_value; }
    void SetName(const int& t_index, const string& t_name)  { table[t_index].name = t_name; }
    void SetIsSet(const int& t_index, const bool t_is_set) { table[t_index].is_set = t_is_set; }
 };

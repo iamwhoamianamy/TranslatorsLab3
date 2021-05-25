@@ -150,6 +150,7 @@
     <ClInclude Include="VarTableRow.h" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="prog.txt" />
     <Text Include="tokens.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

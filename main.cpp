@@ -12,14 +12,7 @@ int main()
 
    SyntaxlAnalyzer sa = SyntaxlAnalyzer();
    sa.readParseTable("parsingTable.txt");
-   sa.LL1("tokens.txt", la);
-   
-  /* LLParse(tokenFile);
+   sa.LL1("tokens.txt", "postfix.txt", la);
 
-   ofstream postfix;
-   postfix.open("postfix.txt");
-   for (int i = 0; i < toPostfixFile.size(); i++)
-      postfix << toPostfixFile[i] << " ";
-   postfix.close();*/
-
+   la.PrintAllTables("tables");
 }
