@@ -242,17 +242,19 @@ public:
                      // Символ - буква
                      case SymbolType::Letter:
                      {
-                        fout << "(20," << place << ")";
+                        fout << "(20," << prev_place << ")";
                         word_type = WordType::Word;
                         word = symbol;
+                        prev_place = place;
                         break;
                      }
                      // Символ - цифра
                      case SymbolType::Number:
                      {
-                        fout << "(20," << place << ")";
+                        fout << "(20," << prev_place << ")";
                         word_type = WordType::Constant;
                         word = symbol;
+                        prev_place = place;
                         break;
                      }
                   }

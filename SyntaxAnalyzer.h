@@ -41,7 +41,6 @@ public:
 		}
 	};
 
-
 	struct parsingTableRow
 	{
 		vector<string> terminals;
@@ -67,7 +66,7 @@ public:
 	};
 
 	vector<parsingTableRow> parsingTable;
-	map<string, int> priority = { {"+", 2}, {"-",2}, {"*",3},{"=",0},{"==",1},{"!=",1 }, {"<",1}, {">",1},{",",0} };
+	map<string, int> priority = { {"+", 2}, {"-",2}, {"*",3},{"=",0},{"==",1},{"!=",1 }, {"<",1}, {"/",3},{",",0} };
 
 	void readParseTable(const string& ParseTableFile)
 	{
@@ -127,13 +126,15 @@ public:
 						{
 							if (op.empty() || op.top() == "(")
 								op.push(sCur);
-							else {
+							else 
+							{
 								int p_in = priority[sCur];
 								int p_top = priority[op.top()];
 								if (p_in > p_top) { op.push(sCur); }
 								else 
 								{
-									while ((op.top() != "(" || priority[op.top()] >= p_in)) {
+									while ((op.top() != "(" || priority[op.top()] >= p_in)) 
+									{
 										postfix.push(op.top());
 										op.pop();
 										if (op.empty()) break;
@@ -146,16 +147,18 @@ public:
 				}
 		}
 
-		while (!op.empty()) {
+		while (!op.empty()) 
+		{
 			postfix.push(op.top());
 			op.pop();
 		}
 
-		while (!postfix.empty()) {
-			postfixFile << postfix.front() << " ";
+		while (!postfix.empty()) 
+		{
+			if (postfix.front() != ";")
+				postfixFile << postfix.front() << " ";
 			postfix.pop();
 		}
-		postfixFile << endl;
 	}
 
 	bool LL1(const string& tokenFile, const string& postfixFile, LexicalAnalyzer& la)
@@ -163,8 +166,8 @@ public:
 		ifstream ftoken(tokenFile);
 		ofstream fpostfix(postfixFile);
 		token tknCur, tknNext;
-		stack<int> states;
-		int currState = 0;
+		stack<int> states, m1, m2;
+		int currState = 0, index = 0, if_count = 0;
 		string sCur, sNext;
 		vector<token> infix;
 		bool OPZ = false;
@@ -205,18 +208,21 @@ public:
 
 							if (sNext == "=") //идентификатор слева от =
 							{
-								la.var_table.SetValue(tknNext.index, 1);
+								la.var_table.SetValue(tknCur.index, 1);
 								infix.push_back(tknCur);
 								OPZ = true;
 							}
+
 							sCur = sNext;
 							tknCur = tknNext;
+							sNext = "";
 						}
 					}
 					else
 					{
 						if (currState == 25) // идентификатор в выражении
 						{
+							sCur = la.var_table.GetName(tknCur.index);
 							if (!la.var_table.GetIsSet(tknCur.index)) //если не задан тип идентификатора
 							{
 								cout << "Error: Unknown identifier '" << sCur << "'!";
@@ -224,26 +230,88 @@ public:
 							}
 							if (!la.var_table.GetValue(tknCur.index)) //если не задано значение идентификатора
 							{
-								cout << "Error: Value of the variable " << sCur << "' is not set!";
+								cout << "Error: Value of the variable '" << sCur << "' is not set!";
 								return false;
 							}
 						}
 
 						if (currState == 58) //объявление нескольких переменных
-						{
-							if (OPZ)	{	postfix(fpostfix, infix, la);	}
-							OPZ = false;
-							infix.clear();
-						}
+							if (OPZ)	
+							{	
+								postfix(fpostfix, infix, la);	
+								fpostfix << endl;
+								OPZ = false;
+								infix.clear();
+							}
 
 
 						//if
+						if (currState == 66) // ) в условии
+						{
+							if (OPZ) 
+							{ 
+								postfix(fpostfix, infix, la); 
+								OPZ = false;
+								infix.clear();
+								index++;
+								m1.push(index);
+								fpostfix << "m" << index << " CJF ";
+							}
+						}
+
+						if (currState == 69) // } в if
+						{
+							if (OPZ)
+							{
+								postfix(fpostfix, infix, la);
+								OPZ = false;
+								infix.clear();
+							}
+						}
+
+						if (currState == 85) // } в else
+						{
+							if (OPZ)
+							{
+								index++;
+								m2.push(index);
+								fpostfix << "m" << index << " UJ ";
+								fpostfix << "m" << m1.top() << ": ";
+								m1.pop();
+
+								postfix(fpostfix, infix, la);
+								OPZ = false;
+								infix.clear();
+								fpostfix << "m" << m2.top() << ": " << endl;
+								m2.pop();
+								if_count--;
+							}
+						}
 
 						if (OPZ)	{ infix.push_back(tknCur); }
 
 						if (ftoken.peek() != EOF)
-							sCur = tknCur.readToken(ftoken, la);
+						{
+							sNext = tknNext.readToken(ftoken, la);
+							if (sNext == "==" || sNext == "!=" || sNext == "<") //идентификатор слева от == != <
+							{
+								infix.push_back(tknCur);
+								OPZ = true;
+								if_count++;
+							}
+
+							sCur = sNext;
+							tknCur = tknNext;
+							sNext = "";
+						}
 					}
+				}
+
+				if (currState == 81) // нет else
+				{
+					fpostfix << "m" << m1.top() << ": " << endl;
+					m1.pop();
+					if_count--;
 				}
 
 				if (parsingTable[currState].stack)
@@ -260,20 +328,26 @@ public:
 							currState = states.top();
 							states.pop();
 							if (currState == 18 || currState == 46) //;
-							{
-								if (OPZ) { postfix(fpostfix, infix, la); }
-								OPZ = false;
-								infix.clear();
-							}
+								if (OPZ && if_count == 0)
+								{ 
+									postfix(fpostfix, infix, la); 
+									fpostfix << endl;
+									OPZ = false;
+									infix.clear();
+								}
 						}
 						else
 						{
-							cout << "Syntax error: Stack is empty!";
-							return false;
+							if (currState != 8)
+							{
+								cout << "Syntax error: Stack is empty!";
+								return false;
+							}
 						}
 					}
 				}
 			}
+
 			else //если символа нет в столбце terminal
 			{
 				if (parsingTable[currState].error) 
@@ -288,13 +362,13 @@ public:
 			}
 		} while (ftoken.peek() != EOF);
 
-		if (currState != 9)
+		if (currState == 8 && la.operators.GetRow(tknCur.index) == "}")
+			cout << "Success!";
+		else
 		{
 			cout << "Error: Incorrect end of the program! Expected '}'";
 			return false;
 		}
-		else
-			cout << "Success!";
 		
 		fpostfix.close();
 		ftoken.close();
