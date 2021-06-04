@@ -1,0 +1,7 @@
+a 1 = 
+b 2 = 
+c 3 = 
+d b c * a / = 
+f b a c * / = 
+e b d + a c * / = 
+i b c * d f * - a / = 

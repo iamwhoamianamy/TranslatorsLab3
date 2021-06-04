@@ -12,7 +12,7 @@ int main()
 
    SyntaxlAnalyzer sa = SyntaxlAnalyzer();
    sa.readParseTable("parsingTable.txt");
-   sa.LL1("tokens.txt", "postfix.txt", la);
+   sa.LL1("tokens.txt", "postfix.txt", "postfixSimple.txt", la);
 
    la.PrintAllTables("tables");
 }

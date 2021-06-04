@@ -2,7 +2,7 @@
 #include "LexicalAnalyzer.h"
 #include <sstream>
 #include <stack>
-#include <queue>
+#include <deque>
 #include <map>
 
 using namespace std;
@@ -12,7 +12,6 @@ class SyntaxlAnalyzer
 public:
 	SyntaxlAnalyzer()
 	{
-
 	};
 
 	struct token
@@ -35,6 +34,23 @@ public:
 			case 40:
 				if (la.const_table.GetName(index) == "0") return "0";
 				return "const";
+			default:
+				break;
+			}
+		}
+
+		string nameByToken(LexicalAnalyzer& la)
+		{
+			switch (tableNum)
+			{
+			case 10:
+				return la.key_words.GetRow(index);
+			case 20:
+				return la.operators.GetRow(index);
+			case 30:
+				return la.var_table.GetName(index);
+			case 40:
+				return la.const_table.GetName(index);
 			default:
 				break;
 			}
@@ -92,79 +108,265 @@ public:
 		fin.close();
 	}
 
-	void postfix(ofstream& postfixFile, vector<token>& infix, LexicalAnalyzer& la)
+	struct tree
 	{
-		stack<string> op;
-		string tmpStr, sCur;
-		token tknCur;
-		queue<string> postfix;
-		for (int i = 0; i < infix.size(); i++) 
+		string elem;
+		tree* left, * right;
+		tree(string _elem = "@", tree* _left = NULL, tree* _right = NULL)
+			: elem(_elem), left(_left), right(_right) {}
+	};
+
+	tree* buildTree(deque<string>& postfix)
+	{
+		string c;
+		tree* t;
+
+		c = postfix.back();
+		postfix.pop_back();
+
+		if (c == "*" || c == "/" || c == "+" || c == "-" || c == "=")
 		{
-			tknCur = infix[i];
-			if (tknCur.tableNum == 30) 
-				postfix.push(la.var_table.GetName(tknCur.index));
-			else 
-				if (tknCur.tableNum == 40)
-					postfix.push(la.const_table.GetName(tknCur.index));
-				else 
+			t = new tree(c);
+			t->right = buildTree(postfix);
+			t->left = buildTree(postfix);
+			return t;
+		}
+		else
+		{
+			t = new tree(c);
+			return t;
+		}
+	}
+
+	bool equalTrees(tree* t1, tree* t2)
+	{
+		if (t1 == NULL && t2 == NULL)
+			return true;
+		if (t1->elem == t2->elem)
+		{
+			if(equalTrees(t1->left, t2->left) && equalTrees(t1->right, t2->right) || equalTrees(t1->left, t2->right) && equalTrees(t1->right, t2->left) && t1->elem == "+")
+				return true;
+			else return false;
+		}
+		else return false;
+	}
+
+	void standIn(tree** t)
+	{
+		tree* d = *t, * f1, * f2, * temp;
+		bool isProcessed;
+		stack<tree*> s;
+		stack<bool> was;
+		stack<int> count;
+
+		do
+		{
+			while (d)
+			{
+				s.push(d);
+				was.push(false);
+				d = d->left;
+			}
+			if (!s.empty())
+			{
+				do
 				{
-					sCur = la.operators.GetRow(tknCur.index);
-					if (sCur == "(")
-						op.push(sCur);
-					else 
+					d = s.top();
+					s.pop();
+					isProcessed = was.top();
+					was.pop();
+					if (isProcessed)
 					{
-						if (sCur == ")")
+						
+
+						if (d->elem == "/" && d->left->elem == "/")
 						{
-							while (op.top() != "(")
-							{
-								postfix.push(op.top());
-								op.pop();
-							}
-							op.pop();
+							d->right = new tree("*", d->left->right, d->right);
+							d->left = d->left->left;
 						}
-						else 
+
+						if (d->elem == "/" && d->right->elem == "/")
 						{
-							if (op.empty() || op.top() == "(")
-								op.push(sCur);
-							else 
+							d->left = new tree("*", d->left, d->right->right);
+							d->right = d->right->left;
+						}
+
+						if (d->elem == "+" || d->elem == "-")
+						{
+							if (d->left->elem == "*" && d->right->elem == "*")
 							{
-								int p_in = priority[sCur];
-								int p_top = priority[op.top()];
-								if (p_in > p_top) { op.push(sCur); }
-								else 
+								f1 = d->left;
+								f2 = d->right;
+								if (equalTrees(f1->left, f2->left))
 								{
-									while ((op.top() != "(" || priority[op.top()] >= p_in)) 
+									d->left = f1->left;
+									d->right = new tree(d->elem, f1->right, f2->right);
+									d->elem = "*";
+								}
+								else
+									if (equalTrees(f1->left, f2->right))
 									{
-										postfix.push(op.top());
-										op.pop();
-										if (op.empty()) break;
+										d->left = f1->left;
+										d->right = new tree(d->elem, f1->right, f2->left);
+										d->elem = "*";
 									}
-									op.push(sCur);
+									else
+										if (equalTrees(f1->right, f2->left))
+										{
+											d->left = f1->right;
+											d->right = new tree(d->elem, f1->left, f2->right);
+											d->elem = "*";
+										}
+										else
+											if (equalTrees(f1->right, f2->right))
+											{
+												d->left = f1->right;
+												d->right = new tree(d->elem, f1->left, f2->left);
+												d->elem = "*";
+											}
+							}
+							
+							if (d->left->elem == "/" && d->right->elem == "/")
+							{
+								f1 = d->left;
+								f2 = d->right;
+								if (equalTrees(f1->right, f2->right))
+								{
+									d->right = f1->right;
+									d->left = new tree(d->elem, f1->left, f2->left);
+									d->elem = "/";
 								}
 							}
 						}
 					}
+						
+				} while (isProcessed && !s.empty());
+				if (!isProcessed)
+				{
+					s.push(d);
+					was.push(true);
+					d = d->right;
 				}
+			}
+		} while (!s.empty());
+	}
+
+	void PostOrder(tree* t, deque<string>& postfix)
+	{
+		stack<tree*> s;
+		stack<bool> was;
+		bool isProcessed;
+
+		do
+		{
+			while (t)
+			{
+				s.push(t);
+				was.push(false);
+				t = t->left;
+			}
+			if (!s.empty())
+			{
+				do
+				{
+					t = s.top();
+					s.pop();
+					isProcessed = was.top();
+					was.pop();
+					if (isProcessed)
+						postfix.push_back(t->elem);
+				} while (isProcessed && !s.empty());
+				if (!isProcessed)
+				{
+					s.push(t);
+					was.push(true);
+					t = t->right;
+				}
+			}
+		} while (!s.empty());
+	};
+
+	void simplification(deque<string>& postfix)
+	{
+		tree* t = buildTree(postfix);
+		standIn(&t);
+		PostOrder(t, postfix);
+	}
+
+	void postfix(ofstream& postfixFile, ofstream& postfixSimpl, vector<token>& infix, LexicalAnalyzer& la)
+	{
+		stack<string> op;
+		string tmpStr, sCur;
+		token tknCur;
+		deque<string> postfix, postfixSimple;
+
+		for (int i = 0; i < infix.size(); i++) 
+		{
+			tknCur = infix[i];
+			if (tknCur.tableNum == 30 || tknCur.tableNum == 40)
+				postfix.push_back(tknCur.nameByToken(la));
+			else 
+			{
+				sCur = tknCur.nameByToken(la);
+
+				if (sCur == "(")
+					op.push(sCur);
+				else
+					if (sCur == ")")
+					{
+						while (op.top() != "(")
+						{
+							postfix.push_back(op.top());
+							op.pop();
+						}
+						op.pop();
+					}
+					else
+						if (op.empty() || priority[sCur] == 0 || priority[sCur] > priority[op.top()])
+							op.push(sCur);
+						else
+						{
+							while (priority[op.top()] >= priority[sCur])
+							{
+								postfix.push_back(op.top());
+								op.pop();
+							}
+							op.push(sCur);
+						}
+			}
 		}
 
 		while (!op.empty()) 
 		{
-			postfix.push(op.top());
+			postfix.push_back(op.top());
 			op.pop();
 		}
 
-		while (!postfix.empty()) 
+		while (!postfix.empty())
 		{
 			if (postfix.front() != ";")
+			{
 				postfixFile << postfix.front() << " ";
-			postfix.pop();
+				postfixSimple.push_back(postfix.front());
+			}
+			postfix.pop_front();
+		}
+
+		simplification(postfixSimple);
+
+		while (!postfixSimple.empty())
+		{
+			if (postfixSimple.front() != ";")
+				postfixSimpl << postfixSimple.front() << " ";
+			postfixSimple.pop_front();
 		}
 	}
 
-	bool LL1(const string& tokenFile, const string& postfixFile, LexicalAnalyzer& la)
+	bool LL1(const string& tokenFile, const string& postfixFile, const string& postfixSimple, LexicalAnalyzer& la)
 	{
 		ifstream ftoken(tokenFile);
 		ofstream fpostfix(postfixFile);
+		ofstream fsimple(postfixSimple);
 		token tknCur, tknNext;
 		stack<int> states, m1, m2;
 		int currState = 0, index = 0, if_count = 0;
@@ -238,24 +440,24 @@ public:
 						if (currState == 58) //объ€вление нескольких переменных
 							if (OPZ)	
 							{	
-								postfix(fpostfix, infix, la);	
+								postfix(fpostfix, fsimple, infix, la);
 								fpostfix << endl;
+								fsimple << endl;
 								OPZ = false;
 								infix.clear();
 							}
-
-
 						//if
 						if (currState == 66) // ) в условии
 						{
 							if (OPZ) 
 							{ 
-								postfix(fpostfix, infix, la); 
+								postfix(fpostfix, fsimple, infix, la);
 								OPZ = false;
 								infix.clear();
 								index++;
 								m1.push(index);
 								fpostfix << "m" << index << " CJF ";
+								fsimple << "m" << index << " CJF ";
 							}
 						}
 
@@ -263,7 +465,7 @@ public:
 						{
 							if (OPZ)
 							{
-								postfix(fpostfix, infix, la);
+								postfix(fpostfix, fsimple, infix, la);
 								OPZ = false;
 								infix.clear();
 							}
@@ -277,12 +479,15 @@ public:
 								m2.push(index);
 								fpostfix << "m" << index << " UJ ";
 								fpostfix << "m" << m1.top() << ": ";
+								fsimple << "m" << index << " UJ ";
+								fsimple << "m" << m1.top() << ": ";
 								m1.pop();
 
-								postfix(fpostfix, infix, la);
+								postfix(fpostfix, fsimple, infix, la);
 								OPZ = false;
 								infix.clear();
 								fpostfix << "m" << m2.top() << ": " << endl;
+								fsimple << "m" << m2.top() << ": " << endl;
 								m2.pop();
 								if_count--;
 							}
@@ -310,6 +515,7 @@ public:
 				if (currState == 81) // нет else
 				{
 					fpostfix << "m" << m1.top() << ": " << endl;
+					fsimple << "m" << m1.top() << ": " << endl;
 					m1.pop();
 					if_count--;
 				}
@@ -330,8 +536,9 @@ public:
 							if (currState == 18 || currState == 46) //;
 								if (OPZ && if_count == 0)
 								{ 
-									postfix(fpostfix, infix, la); 
+									postfix(fpostfix, fsimple, infix, la);
 									fpostfix << endl;
+									fsimple << endl;
 									OPZ = false;
 									infix.clear();
 								}
@@ -371,6 +578,7 @@ public:
 		}
 		
 		fpostfix.close();
+		fsimple.close();
 		ftoken.close();
 		return true;
 	}

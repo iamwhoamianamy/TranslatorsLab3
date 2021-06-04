@@ -1,5 +1,9 @@
 int main()
 {
-   return;
+   int a = 1, b = 2, c = 3;
+   int d = b / (a / c) ;
+   int f = b / a / c ;
+   int e = b / a / c + d / a / c ;
+   int i = b / (a / c) - d / (a / f) ;
+   return 0;
 }
-
