@@ -40,9 +40,9 @@ public:
    // Создание таблицы со всеми символами алфавита языка
    void FillAplhabet()
    {
-      const int k = 15;
+      const int k = 17;
       table.resize(k + 26 + 26 + 10);
-      string operators[k] = { "=", "+", "-", "*", "/", "=", "!", "<", "(", ")", "{", "}", ",", ";", "_" };
+      string operators[k] = { "=", "+", "-", "*", "/", "=", "!", "<", "(", ")", "{", "}", ",", ";", "_", "!=", "==" };
       for(size_t i = 0; i < k; i++)
          table[i] = ConstTableRow(operators[i]);
 

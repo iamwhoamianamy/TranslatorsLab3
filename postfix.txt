@@ -1,5 +1,4 @@
-a 1 = 
-b 2 = 
-c 3 = 
-d b a c / / = 
-f d = 
+a 5 = 
+b 5 = 
+a 5 == m1 CJF b 3 == m2 CJF b a = m3 UJ m2: b 3 = m3: 
+m4 UJ m1: a b = m4: 
