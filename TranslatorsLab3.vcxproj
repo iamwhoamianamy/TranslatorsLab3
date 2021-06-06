@@ -142,6 +142,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CodeGenerator.h" />
     <ClInclude Include="ConstTable.h" />
     <ClInclude Include="ConstTableRow.h" />
     <ClInclude Include="LexicalAnalyzer.h" />

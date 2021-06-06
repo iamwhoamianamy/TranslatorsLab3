@@ -274,7 +274,7 @@ public:
                         if(kw_place != -1)
                            fout << "(10," << kw_place << ")";
                         else
-                           fout << "(30," << var_table.AddRow(VarTableRow(0, word, false)) << ")";
+                           fout << "(30," << var_table.AddRow(VarTableRow(-1, word, false)) << ")";
 
                         word_type = WordType::Blank;
                         word = "";
@@ -296,7 +296,7 @@ public:
                         if(kw_place != -1)
                            fout << "(10," << kw_place << ")";
                         else
-                           fout << "(30," << var_table.AddRow(VarTableRow(0, word, false)) << ")";
+                           fout << "(30," << var_table.AddRow(VarTableRow(-1, word, false)) << ")";
 
                         word_type = WordType::Operator;
                         prev_place = place;

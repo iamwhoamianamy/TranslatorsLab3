@@ -410,7 +410,7 @@ public:
 
 							if (sNext == "=") //идентификатор слева от =
 							{
-								la.var_table.SetValue(tknCur.index, 1);
+								la.var_table.SetValue(tknCur.index, -2);
 								infix.push_back(tknCur);
 								OPZ = true;
 							}
@@ -430,7 +430,7 @@ public:
 								cout << "Error: Unknown identifier '" << sCur << "'!";
 								return false;
 							}
-							if (!la.var_table.GetValue(tknCur.index)) //если не задано значение идентификатора
+							if (la.var_table.GetValue(tknCur.index) == -1) //если не задано значение идентификатора
 							{
 								cout << "Error: Value of the variable '" << sCur << "' is not set!";
 								return false;
@@ -582,4 +582,5 @@ public:
 		ftoken.close();
 		return true;
 	}
+	
 };
